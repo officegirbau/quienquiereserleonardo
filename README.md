@@ -28,7 +28,13 @@ Juego tipo «¿Quién quiere ser millonario?» para el curso de brecha digital d
 En el menú, «✏️ Editor de preguntes»:
 
 - Pestañas para los 3 concursantes; añadir, editar y borrar preguntas.
-- Todo se guarda en el propio navegador (localStorage).
-- **Exportar JSON / Importar JSON** para traspasar las preguntas a otro ordenador (por ejemplo, el del aula).
 
-> Nota: si borras los datos del navegador se pierden las preguntas editadas; usa «Exportar» para hacer copia.
+**¿Dónde se guardan los cambios?** Las preguntas editadas se guardan **en el navegador del ordenador donde estés jugando** (llamado «almacenamiento local»). **No reescriben el archivo `index.html`**, y aguantan aunque cierres la página o apagues el ordenador. Solo se pierden si borras los datos del navegador (caché/cookies de ese sitio) o cambias de ordenador/navegador.
+
+Para no perder nada:
+
+- **«⬇️ Descarregar còpia»**: baja un fichero `preguntes-leonardo.json` con las 45 preguntas tal como estén. Guárdalo en USB o donde quieras.
+- **«⬆️ Carregar un fitxer .json»**: en cualquier otro ordenador, carga ese fichero y las preguntas quedarán idénticas.
+- También puedes copiar/pegar el JSON a mano («📋 Importar enganxant text»).
+
+> Consejo: después de escribir las preguntas de clase, pulsa «Descarregar còpia» y guarda el JSON en una carpeta. Así siempre tienes copia de seguridad.

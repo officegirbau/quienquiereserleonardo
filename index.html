@@ -330,6 +330,8 @@ function iniciarTemporitzador() {
 }
 function aturarTemporitzador() {
   if (intervalTemp) { clearInterval(intervalTemp); intervalTemp = null; }
+  estat.temporitzadorRestant = 0;
+  pintarTemporitzador();
 }
 function pintarTemporitzador() {
   var el = document.getElementById("temporitzador");
@@ -651,7 +653,7 @@ function renderEditor() {
   var html = '<h1>Editor de preguntes<small>' + escapar(NOMS_CONCURSANTS[n]) + '</small></h1>' +
     '<div class="editor-zona"><div class="fila">' + pestanyes + '</div>';
   if (!preguntesPerConcursant["c" + (n + 1)]) {
-    html += '<div class="aviso">Aquest concursant té de sèrie les 15 preguntes del guion. Si n\'editeu alguna, es desaran al navegador i prevaldran sobre les originals.</div>';
+    html += '<div class="aviso">Aquest concursant té de sèrie les 15 preguntes del guion. Les edicions es queden desades al navegador d\'aquest ordinador (no modifiquen l\'index.html): feu «Descarregar còpia» per tenir-les en un fitxer i portar-les a qualsevol altre ordinador.</div>';
   }
   llista.forEach(function (q, i) {
     html += '<div class="item-pregunta"><span><strong>' + (i + 1) + '.</strong> ' + escapar(q.p) +
@@ -663,11 +665,18 @@ function renderEditor() {
     html += '<div class="fila" style="margin:12px 0;"><button class="btn" data-accio="afegir-p">＋ Afegir pregunta ' + (llista.length + 1) + '</button></div>';
   }
   html += '<div class="fila" style="margin-top:16px;">' +
-    '<button class="btn secundari btn-petit" data-accio="exportar">⬆️ Exportar totes les preguntes (JSON)</button>' +
-    '<button class="btn secundari btn-petit" data-accio="importar">⬇️ Importar preguntes (JSON)</button>' +
+    '<button class="btn secundari btn-petit" data-accio="exportar">⬇️ Descarregar còpia de les preguntes (fitxer .json)</button>' +
+    '<label class="btn secundari btn-petit">⬆️ Carregar un fitxer .json' +
+      '<input type="file" id="fitxerImport" accept=".json,.txt" style="display:none;">' +
+    '</label>' +
+    '<button class="btn secundari btn-petit" data-accio="importar">📋 Importar enganxant text (JSON)</button>' +
     '</div><div id="zonaImport"></div>' +
     '<div class="tornar"><button class="btn" data-accio="tornar-inici">⬅ Tornar al menú</button></div></div>';
   app.innerHTML = html;
+  var fitxerImport = document.getElementById("fitxerImport");
+  if (fitxerImport) fitxerImport.addEventListener("change", function () {
+    carregarFitxerImport(fitxerImport.files[0]);
+  });
 }
 
 function renderEdicioPregunta() {
@@ -717,11 +726,51 @@ function renderEdicioPregunta() {
   });
 }
 
+function aplicarImport(dades) {
+  var esLlistaValida = function (a) {
+    return Array.isArray(a) && a.every(function (q) {
+      return q && typeof q.p === "string" && Array.isArray(q.o) && q.o.length === 4
+        && typeof q.c === "number" && q.c >= 0 && q.c <= 3;
+    });
+  };
+  var carregades = 0;
+  if (esLlistaValida(dades.c1)) { preguntesPerConcursant.c1 = dades.c1; carregades++; }
+  if (esLlistaValida(dades.c2)) { preguntesPerConcursant.c2 = dades.c2; carregades++; }
+  if (esLlistaValida(dades.c3)) { preguntesPerConcursant.c3 = dades.c3; carregades++; }
+  if (!carregades) { alert("El fitxer no té preguntes vàlides."); return; }
+  guardarPreguntes();
+  estat.missatge = "Preguntes importades correctament!";
+  estat.vista = "inici";
+  renderitzar();
+}
+
+function carregarFitxerImport(fitxer) {
+  if (!fitxer) return;
+  var lector = new FileReader();
+  lector.onload = function () {
+    try { aplicarImport(JSON.parse(lector.result)); }
+    catch (e) { alert("El fitxer no és un JSON vàlid."); }
+  };
+  lector.readAsText(fitxer);
+}
+
 function exportarPreguntes() {
   var dades = { c1: preguntesDe(0), c2: preguntesDe(1), c3: preguntesDe(2) };
-  document.getElementById("zonaImport").innerHTML =
-    '<label>Copia aquest text i guarda\'l en un fitxer (per reutilitzar-lo a un altre ordinador):</label>' +
-    '<textarea class="camp" rows="8" readonly onclick="this.select()">' + escapar(JSON.stringify(dades)) + '</textarea>';
+  var contingut = JSON.stringify(dades, null, 1);
+  try {
+    var blob = new Blob([contingut], { type: "application/json" });
+    var enllac = document.createElement("a");
+    enllac.href = URL.createObjectURL(blob);
+    enllac.download = "preguntes-leonardo.json";
+    document.body.appendChild(enllac);
+    enllac.click();
+    document.body.removeChild(enllac);
+    setTimeout(function () { URL.revokeObjectURL(enllac.href); }, 1000);
+  } catch (e) {
+    document.getElementById("zonaImport").innerHTML =
+      '<label>Copia aquest text i guarda\'l en un fitxer:</label>' +
+      '<textarea class="camp" rows="8" readonly onclick="this.select()">' + escapar(contingut) + '</textarea>';
+  }
 }
 function importarPreguntes() {
   var zona = document.getElementById("zonaImport");
@@ -734,19 +783,7 @@ function importarPreguntes() {
     var dades;
     try { dades = JSON.parse(document.getElementById("textImport").value); }
     catch (e) { alert("El text no és un JSON vàlid."); return; }
-    var esLlistaValida = function (a) {
-      return Array.isArray(a) && a.every(function (q) {
-        return q && typeof q.p === "string" && Array.isArray(q.o) && q.o.length === 4
-          && typeof q.c === "number" && q.c >= 0 && q.c <= 3;
-      });
-    };
-    if (esLlistaValida(dades.c1)) { preguntesPerConcursant.c1 = dades.c1; }
-    if (esLlistaValida(dades.c2)) { preguntesPerConcursant.c2 = dades.c2; }
-    if (esLlistaValida(dades.c3)) { preguntesPerConcursant.c3 = dades.c3; }
-    guardarPreguntes();
-    estat.missatge = "Preguntes importades correctament!";
-    estat.vista = "inici";
-    renderitzar();
+    aplicarImport(dades);
   });
 }
 
