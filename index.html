@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>¿Quién quiere ser Leonardo?</title>
+<style>
+  :root{
+    --blau-fosc:#0a1030;
+    --blau-mig:#1a2a6b;
+    --or:#f5c542;
+    --vermell:#d0342c;
+    --taronja:#e8801a;
+    --text:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;font-family:"Segoe UI",Arial,sans-serif;color:var(--text);
+    background:radial-gradient(circle at 50% 0%,#233a8f 0%,var(--blau-mig) 45%,var(--blau-fosc) 100%);
+    min-height:100vh;
+  }
+  #app{max-width:1200px;margin:0 auto;padding:16px;}
+  h1{font-size:2rem;text-align:center;color:var(--or);text-shadow:0 2px 6px #000;margin:.3em 0;}
+  h1 small{display:block;font-size:1rem;color:#cfd6ff;font-weight:normal;}
+  .botons-menu{display:flex;flex-direction:column;gap:14px;max-width:640px;margin:24px auto;}
+  .btn{
+    font:inherit;font-size:1.15rem;font-weight:bold;cursor:pointer;color:#fff;
+    background:linear-gradient(180deg,#2a3f9e,#16235f);
+    border:2px solid var(--or);border-radius:12px;padding:14px 20px;
+    transition:transform .08s,background .15s;
+  }
+  .btn:hover{transform:scale(1.02);background:#31499f;}
+  .btn.secundari{border-color:#7d8ac9;}
+  .btn.perill{border-color:var(--vermell);background:linear-gradient(180deg,#a02a24,#5e170f);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+  .btn-petit{font-size:.95rem;padding:6px 12px;}
+  .fila{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+  .columna-joc{display:flex;gap:18px;align-items:flex-start;}
+  .zona-pregunta{flex:1;min-width:0;}
+  .escala-zona{width:250px;flex-shrink:0;}
+  @media (max-width:820px){
+    .columna-joc{flex-direction:column-reverse;}
+    .escala-zona{width:100%;}
+  }
+  .capsalera-joc{
+    display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;
+    background:rgba(0,0,20,.4);border:1px solid #3c4a9a;border-radius:12px;padding:10px 14px;margin-bottom:14px;
+  }
+  .guanyactual{font-size:1.3rem;color:var(--or);font-weight:bold;}
+  .comodins{display:flex;gap:8px;}
+  .comodi{
+    font:inherit;font-weight:bold;cursor:pointer;border-radius:50%;
+    width:58px;height:58px;font-size:.9rem;color:#fff;
+    background:radial-gradient(circle at 30% 30%,#4c62c9,#1a2470);
+    border:3px solid var(--or);
+  }
+  .comodi.usat{opacity:.25;text-decoration:line-through;cursor:not-allowed;border-color:#666;}
+  .targeta-pregunta{
+    background:linear-gradient(180deg,#1b2a77,#0d1740);
+    border:2px solid var(--or);border-radius:16px;
+    padding:22px;text-align:center;font-size:1.35rem;line-height:1.4;margin-bottom:18px;
+  }
+  .num-pregunta{color:var(--or);font-size:1rem;margin-bottom:8px;font-weight:bold;}
+  .opcions{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:640px){.opcions{grid-template-columns:1fr;}}
+  .opcio{
+    display:flex;align-items:center;gap:12px;font:inherit;font-size:1.15rem;text-align:left;color:#fff;
+    background:linear-gradient(180deg,#233a8f,#111c55);
+    border:2px solid #5a6bc4;border-radius:12px;padding:12px 16px;cursor:pointer;
+  }
+  .opcio:hover{border-color:var(--or);}
+  .lletra{
+    font-weight:bold;color:var(--or);border:2px solid var(--or);border-radius:50%;
+    width:34px;height:34px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .opcio.triada{border-color:var(--taronja);background:#7a4a10;}
+  .opcio.correcta{border-color:#3ddc6b;background:#1c5e30;}
+  .opcio.error{border-color:var(--vermell);background:#6e1d18;}
+  .opcio.oculta{visibility:hidden;}
+  .opcio:disabled{cursor:not-allowed;}
+  .panell-controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;justify-content:center;}
+  .panell-controls .btn{font-size:1.05rem;padding:10px 16px;}
+  #temporitzador{
+    font-size:2.6rem;font-weight:bold;color:var(--vermell);text-align:center;
+    display:none;margin:10px 0;text-shadow:0 2px 8px #000;
+  }
+  .modal-fons{
+    display:none;position:fixed;inset:0;background:rgba(0,0,10,.75);
+    align-items:center;justify-content:center;z-index:50;padding:16px;
+  }
+  .modal-fons.visible{display:flex;}
+  .modal{background:var(--blau-mig);border:3px solid var(--or);border-radius:16px;padding:22px;max-width:560px;width:100%;}
+  .modal h3{margin-top:0;color:var(--or);text-align:center;}
+  .grafic-publi{display:flex;flex-direction:column;gap:8px;margin:14px 0;}
+  .barra-fila{display:flex;align-items:center;gap:10px;font-weight:bold;}
+  .barra-fila .lletra{width:28px;height:28px;font-size:.9rem;}
+  .barra-contenidor{flex:1;background:#0b1238;border:1px solid #5a6bc4;border-radius:8px;height:26px;overflow:hidden;}
+  .barra{height:100%;background:linear-gradient(90deg,var(--or),#fff2c0);width:0;}
+  .pct{width:48px;text-align:right;}
+  .resultat-final{
+    text-align:center;font-size:1.4rem;margin:20px auto;max-width:640px;
+    border:2px solid var(--or);border-radius:16px;padding:26px;
+  }
+  .editor-zona{max-width:820px;margin:0 auto;}
+  .camp{display:block;width:100%;font:inherit;padding:9px 12px;margin:6px 0 12px;
+    border-radius:8px;border:2px solid #5a6bc4;background:#0b1238;color:#fff;}
+  .camp:focus{outline:none;border-color:var(--or);}
+  label{font-weight:bold;color:#cfd6ff;}
+  .radio-correcta{margin-right:6px;transform:scale(1.3);}
+  .item-pregunta{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    background:rgba(0,0,30,.5);border:1px solid #3c4a9a;border-radius:10px;
+    padding:10px 14px;margin-bottom:8px;
+  }
+  .item-pregunta span{flex:1;}
+  .aviso{
+    background:#4a3a10;border:1px solid var(--or);border-radius:10px;
+    padding:12px 16px;margin:12px auto;max-width:640px;font-size:1.05rem;text-align:center;
+  }
+  .ajuda{max-width:760px;margin:0 auto;font-size:1.1rem;line-height:1.6;}
+  .ajuda li{margin-bottom:8px;}
+  .tornar{margin-top:20px;text-align:center;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div class="modal-fons" id="modalPubli">
+  <div class="modal">
+    <h3>Comodí del públic — votació a mà alçada</h3>
+    <p>Anoteu quants vots aixeca la classe per a cada resposta i feu el gràfic:</p>
+    <div id="inputsPubli" class="fila" style="justify-content:flex-start;"></div>
+    <div class="grafic-publi" id="graficPubli"></div>
+    <div class="fila">
+      <button class="btn" id="btnPubliFer">Fer el gràfic</button>
+      <button class="btn secundari" id="btnPubliTancar">Tancar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+var PREMIS = [100,200,300,500,1000,2000,4000,8000,10000,15000,30000,60000,120000,300000,1000000];
+var NIVELL_ASSEGURAT_1 = 4; // pregunta 5: 1.000
+var NIVELL_ASSEGURAT_2 = 9; // pregunta 10: 15.000
+var LLETRES = ["A","B","C","D"];
+var NOMS_CONCURSANTS = ["Concursant 1 (Leonardo)", "Concursant 2", "Concursant 3"];
+var CLAU_EMMAGATZEMATGE = "qql_leonardo_preguntes_v1";
+
+/* Las 15 preguntas del PDF (concursante 1 por defecto) */
+/* 45 preguntas del guion final (15 por concursante) */
+var PREGUNTES_C1 = [
+  { p:"Com es diu el programa o navegador que utilitzem habitualment al curs per entrar a Internet?",
+    o:["Microsoft Word","Google Chrome","WhatsApp","Antivirus"], c:1 },
+  { p:"Si volem redactar i enviar un correu electrònic a un familiar, quina aplicació fem servir?",
+    o:["Gmail","Google Maps","Amazon","Calculadora"], c:0 },
+  { p:"Per entrar al nostre compte de Gmail en un ordinador que no és el nostre (per exemple, a l'aula o a una biblioteca), què necessitem com a mínim?",
+    o:["La targeta de crèdit","El nom del compte de correu i la contrasenya","El DNI físic","Un llapis de memòria USB"], c:1 },
+  { p:"Quina icona de Google serveix per cercar informació o escriure una paraula que volem trobar?",
+    o:["La paperera","La lupa","El llapis","El calendari"], c:1 },
+  { p:"Al supermercat en línia (com Ulabox o Mercadona), on es van guardant els productes que seleccionem abans de pagar?",
+    o:["A la paperera","Al correu electrònic","A la cistella de la compra / Carrito","Al calendari"], c:2 },
+  { p:"Quin document és indispensable tenir a mà per demanar una cita prèvia al metge de capçalera per Internet?",
+    o:["El carnet de conduir","La targeta sanitària (TSI / CatSalut)","El receptari antic de paper","La targeta de la biblioteca"], c:1 },
+  { p:"Per a quina de les següents gestions NO cal demanar cita prèvia per Internet a la DGT o a la Policia?",
+    o:["Renovació del DNI","Passar la ITV del cotxe","Anar a comprar el pa a la fleca del barri","Renovació del permís de conduir"], c:2 },
+  { p:"A quina aplicació de Google podem programar una alarma o recordatori per no oblidar una presa de medicació o una visita mèdica?",
+    o:["Google Calendar","Google Maps","YouTube","Google Fotos"], c:0 },
+  { p:"Si volem enviar un mateix correu electrònic a diferents persones a la vegada sense que es vegin les adreces entre elles per privacitat, quina opció hem de triar?",
+    o:["Enviar com a Esborrany","Enviar amb CCO (Còpia de carbó oculta)","Adjuntar una imatge","Escriure les adreces a l'Assumpte"], c:1 },
+  { p:"Quina d'aquestes accions és la més segura quan operem amb la banca per Internet?",
+    o:["Apuntar la contrasenya en un paperet i enganxar-lo a la pantalla","Obrir la banca des d'un ordinador públic d'un cibercafè","Tancar la sessió sempre en acabar i no compartir mai les claus privades","Enviar el número de targeta per correu electrònic a un desconegut"], c:2 },
+  { p:"A Google Docs, un cop hem creat un document i li hem posat nom, en quin format el solem enviar per correu electrònic si volem assegurar-nos que ningú el pugui modificar?",
+    o:["Com a arxiu de música MP3","Com a document PDF","Com a vídeo de YouTube","Com a aplicació executable"], c:1 },
+  { p:"A les meves fulles de càlcul de Google (Google Sheets), quin signe o símbol és IMPRESCINDIBLE escriure primer de tot per indicar que volem fer qualsevol operació matemàtica (suma, resta, etc.)?",
+    o:["El signe d'interrogació (?)","L'arroba (@)","El signe igual (=)","El signe de percentatge (%)"], c:2 },
+  { p:"Durant una reunió per vídeo a Google Meet, quina opció tenim si volem demanar el torn de paraula de forma ordenada sense tallar a la persona que està parlant?",
+    o:["Penjar la trucada i tornar a entrar","La funció d'aixecar la mà","Tancar l'ordinador","Apagar el monitor"], c:1 },
+  { p:"A Google Meet, quina eina fem servir si volem que la resta de participants vegin a la seva pantalla el document o la foto que tenim nosaltres oberta a l'ordinador?",
+    o:["Compartir pantalla / Presentar ara","Silenciar el micròfon","Desactivar la càmera","Enviar un emoji de cor"], c:0 },
+  { p:"Tots els documents i canvis que anem fent a les eines de Google al núvol (com Docs, Sheets o Drive)... com es desen?",
+    o:["S'han de desar manualment prement el botó «Guardar como» abans de tancar","Es guarden automàticament al núvol a mesura que anem treballant, sense haver de prémer cap botó","Només es guarden si tenim un llapis de memòria USB connectat","Es desen únicament quan s'apaga l'ordinador"], c:1 }
+];
+
+var PREGUNTES_C2 = [
+  { p:"Com es diu la barra blanca de la part superior de Google Chrome on escrivim l'adreça d'una web (com www.google.com)?",
+    o:["Barra d'estat","Barra d'adreces","Barra de tasques","Menú d'inici"], c:1 },
+  { p:"Quan un familiar o amic ens envia un correu electrònic a Gmail, en quina carpeta o secció principal apareix guardat?",
+    o:["Paperera","Bústia d'entrada / Recibidos","Spam","Enviats"], c:1 },
+  { p:"Quan estem utilitzant Google Chrome i volem obrir una pàgina nova sense tancar la que ja tenim oberta, quin botó premem a la part superior?",
+    o:["El botó de recarregar la pàgina","El botó de nova pestanya (+)","El botó d'imprimir","El botó de tancar la sessió"], c:1 },
+  { p:"Quina icona hem de clicar a la part superior d'una pestanya o del navegador quan hem acabat i volem tancar-lo?",
+    o:["Una creu (X)","Un signe de sumar (+)","Un guió (-)","Un signe d'interrogació (?)"], c:0 },
+  { p:"Si estem en un supermercat en línia o a Amazon i volem trobar ràpidament «llet sense lactosa» o «oli d'oliva», quina és l'opció més pràctica?",
+    o:["Mirar tots els productes de la pàgina un per un des del principi","Escriure el nom del producte al cercador intern de la pàgina","Enviar una carta per correu postal","Esperar que surti un anunci a la pantalla"], c:1 },
+  { p:"Quina d'aquestes dades NO hem de donar mai per correu electrònic ni per telèfon, encara que el missatge digui que ve del nostre banc?",
+    o:["El nostre nom i cognoms","Les nostres claus privades o el PIN de la targeta","La ciutat on vivim","El nom de la nostra entitat bancària"], c:1 },
+  { p:"A l'espai digital de salut (La Meva Salut), quin document podem consultar o descarregar per saber quins medicaments tenim autoritzats i quines dosis hem de prendre?",
+    o:["El pla de medicació / Recepta electrònica","El carnet de conduir","El certificat de la ITV","El rebut de la llum"], c:0 },
+  { p:"Si necessitem canviar el dia o anul·lar una cita prèvia que ja teníem demanada, què necessitarem introduir a la web?",
+    o:["Tornar a fer tot el procés d'inscripció com a usuari nou","El número de DNI / TSI i les dades de la cita guardada","La contrasenya del correu d'un familiar","Anar directament a l'oficina sense avís"], c:1 },
+  { p:"A Google Calendar, quina opció hem de marcar si volem crear un recordatori que es repeteixi cada dijous (com per exemple la classe del curs)?",
+    o:["Crear 50 recordatoris diferents a mà","Configurar l'opció de repetició (per exemple: «Setmanalment»)","Esborrar tot el calendari","Canviar l'hora de l'ordinador"], c:1 },
+  { p:"A la nostra bústia de Gmail, a quina carpeta van a parar automàticament els missatges sospitosos, la publicitat no sol·licitada o els possibles correus de frau?",
+    o:["A la carpeta de Favorits","A la carpeta de Spam / Correu brossa","A la bústia d'entrada amb una estrella groga","Es baixen directament a l'escriptori"], c:1 },
+  { p:"Si durant una videotrucada a Google Meet hi ha soroll a casa nostra (obres, televisió, etc.), quina icona hem de prémer per no molestar mentre parla una altra persona?",
+    o:["Desconnectar la Wi-Fi","Silenciar el micròfon (icona del micròfon)","Canviar la foto de perfil","Tancar la pantalla de l'ordinador"], c:1 },
+  { p:"Quan acabem de crear un document nou a Google Docs i volem canviar el nom per defecte («Documento sin título»), on hem de fer clic per escriure el títol correcte?",
+    o:["A la part superior esquerra, a la casella del títol","A l'última línia de la pàgina","A la barra d'adreces del navegador","Els documents de Google no poden tenir nom"], c:0 },
+  { p:"Si a una fulla de càlcul de Google Sheets tenim una quantitat a la cel·la A1 i una altra a la cel·la A2, quina fórmula hem d'escriure per sumar-les automàticament?",
+    o:["suma A1 A2","=A1+A2","+A1+A2=","A1 més A2"], c:1 },
+  { p:"Durant una reunió a Google Meet, quina opció podem utilitzar per enviar un aplaudiment o un cor d'aprovació sense necessitat d'obrir el micròfon?",
+    o:["Enviar una trucada de veu paral·lela","Utilitzar la barra de reaccions amb emojis","Canviar el fons de la càmera","Apagar el llum de l'habitació"], c:1 },
+  { p:"Si a Google Drive esborrem un arxiu o document per equivocació, com el podem recuperar abans que passin els 30 dies?",
+    o:["Anar a la Paperera de Google Drive, seleccionar l'arxiu i clicar a «Restaurar»","Trucar per telèfon a la seu central de Google","Els arxius esborrats no es poden recuperar mai","Cal comprar un ordinador nou"], c:0 }
+];
+
+var PREGUNTES_C3 = [
+  { p:"Si una pàgina web no s'acaba de carregar bé a Google Chrome, quin botó o icona de la part superior podem prémer per tornar-la a carregar?",
+    o:["La tecla d'apagar","La fletxa en forma de cercle (Recarregar / Actualitzar)","La tecla d'espai","La creu de tancar"], c:1 },
+  { p:"A l'hora d'enviar un correu electrònic a Gmail, a quina casella hem d'escriure el títol o resum breu del tema del missatge (per exemple: «Cita de dijous»)?",
+    o:["A l'Assumpte (Asunto)","A la Paperera","A la contrasenya","A la barra d'adreces"], c:0 },
+  { p:"Quina és l'adreça web principal del cercador més utilitzat a Internet des d'on podem començar a buscar qualsevol informació?",
+    o:["www.google.com","www.whatsapp.com","www.word.com","www.calculadora.es"], c:0 },
+  { p:"Quan utilitzem Gmail en un ordinador de l'aula o d'un lloc públic, quina opció hem de triar abans de marxar perquè ningú pugui entrar als nostres correus?",
+    o:["Enviar un missatge","Tancar la sessió (Cerrar sesión)","Apagar la llum de la sala","Esborrar la bústia d'entrada"], c:1 },
+  { p:"Quan comprem en un supermercat en línia o a una botiga per Internet, quin és el darrer pas indispensable per confirmar i finalitzar la comanda?",
+    o:["Esborrar la cistella","Realitzar el pagament segur (amb targeta o mètode autoritzat)","Apagar l'ordinador sense pagar","Enviar una foto de la cistella per correu"], c:1 },
+  { p:"Què és «La Meva Salut» a Catalunya?",
+    o:["Un programa de televisió sobre cuina sana","L'espai digital personal per consultar l'historial clínic, informes i receptes","Una farmàcia de guàrdia","Un supermercat de productes dietètics"], c:1 },
+  { p:"Si tenim un dubte o una urgència nocturna i volem saber quina farmàcia està oberta al nostre municipi fora de l'horari habitual, quin servei en línia podem consultar?",
+    o:["El cercador de farmàcies de guàrdia (com Portalfarma)","La web de la ITV","La pàgina de compres d'Amazon","El cercador del DNI"], c:0 },
+  { p:"A Google Calendar, quina opció ens permet escriure l'adreça o el lloc on tindrà lloc una reunió o una visita mèdica?",
+    o:["L'opció d'afegir ubicació / lloc","El botó de canviar el color del fons del monitor","L'opció d'esborrar el calendari","El botó de redactar correu"], c:0 },
+  { p:"Quan rebem un correu electrònic a Gmail amb un arxiu adjunt (com un document PDF o una foto), quina icona hem de clicar si el volem desar al nostre ordinador?",
+    o:["El botó de Respondre","La icona de Descarregar (fletxa cap avall)","La paperera","El botó de CCO"], c:1 },
+  { p:"A l'hora de crear una contrasenya segura per als nostres tràmits o correu electrònic, quina d'aquestes opcions és la més recomanable?",
+    o:["Escriure «123456» o «contrasenya»","Posar la nostra data de naixement a tot arreu","Combinar lletres majúscules, minúscules, números i algun símbol","Utilitzar el mateix nom d'usuari com a contrasenya"], c:2 },
+  { p:"A Google Meet, quina icona ens permet activar o desactivar la nostra imatge en directe perquè la resta de participants ens puguin veure o no?",
+    o:["La icona de la càmera de vídeo","La icona de l'altaveu","El botó vermell de penjar","La barra d'adreces"], c:0 },
+  { p:"Si estem redactant un text a Google Docs i volem destacar una paraula o títol important perquè es vegi més fosca i gruixuda, quina opció de format apliquem?",
+    o:["Negreta (botó «B» o «N»)","Cursiva","Subratllat","Salt de pàgina"], c:0 },
+  { p:"A les fulles de càlcul de Google Sheets, com s'anomenen els quadres o rectangles individuals formats per la intersecció d'una columna (lletra) i una fila (número), com ara A1 o B2?",
+    o:["Pestanyes","Cel·les","Carpetes","Enllaços"], c:1 },
+  { p:"A Google Drive, quina és la millor manera de tenir organitzats els nostres documents i fotos perquè no estiguin tots barrejats a la pantalla principal?",
+    o:["Creant carpetes temàtiques per agrupar els arxius","Canviant l'idioma de l'ordinador","Esborrant tots els arxius cada divendres","Imprimint-ho tot en paper"], c:0 },
+  { p:"Quina és la principal avantatge de tenir els nostres documents, fotos i carpetes guardats a Google Drive en lloc de tenir-los només a l'ordinador de l'aula o de casa?",
+    o:["Que s'esborren automàticament cada vegada que tanquem el navegador","Que hi podem accedir i consultar-los des de qualsevol ordinador o dispositiu amb Internet només entrant amb el nostre compte de Gmail","Que només es poden obrir si els imprimim abans en paper","Que ocupen tota la memòria del nostre telèfon mòbil"], c:1 }
+];
+
+var estat = {
+  vista:"inici",          // inici | joc | final | editor | edicio-pregunta | ajuda
+  mode:null,              // presentador | concursant
+  concursant:0,
+  nivell:0,
+  guany:0,
+  triada:null,
+  confirmat:false,
+  eliminades:[],
+  comodins:{cincuenta:true,publi:true,google:true},
+  veientCorrecta:false,
+  temporitzadorRestant:0,
+  missatge:""
+};
+var editorEstat = { concursant:0, index:null };
+var votesTemp = [0,0,0,0];
+var intervalTemp = null;
+
+var app = document.getElementById("app");
+
+/* ---------------- PREGUNTES ---------------- */
+var preguntesPerConcursant = carregarPreguntes();
+
+function carregarPreguntes() {
+  var dades = null;
+  try { dades = JSON.parse(localStorage.getItem(CLAU_EMMAGATZEMATGE)); } catch (e) { dades = null; }
+  if (!dades || typeof dades !== "object") dades = {};
+  return {
+    c1: Array.isArray(dades.c1) && dades.c1.length ? dades.c1 : null,
+    c2: Array.isArray(dades.c2) ? dades.c2 : null,
+    c3: Array.isArray(dades.c3) ? dades.c3 : null
+  };
+}
+
+function preguntesDe(n) {
+  if (n === 0) return preguntesPerConcursant.c1 || PREGUNTES_C1;
+  return preguntesPerConcursant["c" + (n + 1)] || (n === 1 ? PREGUNTES_C2 : PREGUNTES_C3);
+}
+
+function guardarPreguntes() {
+  var dades = { c1: preguntesPerConcursant.c1, c2: preguntesPerConcursant.c2, c3: preguntesPerConcursant.c3 };
+  try { localStorage.setItem(CLAU_EMMAGATZEMATGE, JSON.stringify(dades)); } catch (e) {}
+}
+
+function preguntaActual() {
+  return preguntesDe(estat.concursant)[estat.nivell] || null;
+}
+
+function premiAssegurat() {
+  if (estat.nivell > NIVELL_ASSEGURAT_2) return PREMIS[NIVELL_ASSEGURAT_2];
+  if (estat.nivell > NIVELL_ASSEGURAT_1) return PREMIS[NIVELL_ASSEGURAT_1];
+  return 0;
+}
+
+function formatEuro(n) { return n.toLocaleString("ca-ES") + " €"; }
+
+function escapar(s) {
+  return String(s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+
+/* ---------------- TEMPORITZADOR GOOGLE (30 s) ---------------- */
+function iniciarTemporitzador() {
+  aturarTemporitzador();
+  estat.temporitzadorRestant = 30;
+  pintarTemporitzador();
+  intervalTemp = setInterval(function () {
+    estat.temporitzadorRestant--;
+    pintarTemporitzador();
+    if (estat.temporitzadorRestant <= 0) {
+      aturarTemporitzador();
+      estat.temporitzadorRestant = 0;
+      pintarTemporitzador();
+      estat.missatge = "S'han acabat els 30 segons de Google!";
+      renderitzar();
+    }
+  }, 1000);
+}
+function aturarTemporitzador() {
+  if (intervalTemp) { clearInterval(intervalTemp); intervalTemp = null; }
+}
+function pintarTemporitzador() {
+  var el = document.getElementById("temporitzador");
+  if (!el) return;
+  el.textContent = "Google: " + estat.temporitzadorRestant + " s";
+  el.style.display = estat.temporitzadorRestant > 0 ? "block" : "none";
+}
+
+/* ---------------- MODAL PÚBLIC ---------------- */
+function obrirPublic() {
+  votesTemp = [0,0,0,0];
+  var contenidor = document.getElementById("inputsPubli");
+  contenidor.innerHTML = "";
+  LLETRES.forEach(function (l, i) {
+    var entrada = document.createElement("input");
+    entrada.type = "number"; entrada.min = "0"; entrada.value = "0";
+    entrada.className = "camp"; entrada.style.width = "90px"; entrada.style.margin = "0";
+    entrada.setAttribute("aria-label", "Vots opció " + l);
+    entrada.addEventListener("input", function () {
+      votesTemp[i] = Math.max(0, parseInt(entrada.value, 10) || 0);
+    });
+    contenidor.appendChild(entrada);
+  });
+  document.getElementById("graficPubli").innerHTML = "";
+  document.getElementById("modalPubli").classList.add("visible");
+}
+function ferGraficPublic() {
+  var total = votesTemp.reduce(function (a, b) { return a + b; }, 0);
+  var grafic = document.getElementById("graficPubli");
+  grafic.innerHTML = "";
+  LLETRES.forEach(function (l, i) {
+    var pct = total > 0 ? Math.round(100 * votesTemp[i] / total) : 0;
+    var fila = document.createElement("div");
+    fila.className = "barra-fila";
+    fila.innerHTML = '<span class="lletra">' + l + '</span>' +
+      '<div class="barra-contenidor"><div class="barra" style="width:' + pct + '%"></div></div>' +
+      '<span class="pct">' + pct + '%</span>';
+    grafic.appendChild(fila);
+  });
+}
+
+/* ---------------- ACCIONS DE JOC ---------------- */
+function iniciarJoc() {
+  if (preguntesDe(estat.concursant).length < 15) {
+    estat.missatge = "Aquest concursant encara no té les 15 preguntes. Afegiu-les amb l'editor.";
+    estat.vista = "inici";
+    renderitzar();
+    return;
+  }
+  estat.vista = "joc";
+  reiniciarTorn();
+  renderitzar();
+}
+function reiniciarTorn() {
+  estat.nivell = 0;
+  estat.guany = 0;
+  estat.triada = null;
+  estat.confirmat = false;
+  estat.eliminades = [];
+  estat.veientCorrecta = false;
+  estat.missatge = "";
+  estat.comodins = {cincuenta:true,publi:true,google:true};
+  aturarTemporitzador();
+}
+function clicarOpcio(i) {
+  if (estat.confirmat) return;
+  estat.triada = (estat.triada === i) ? null : i;
+  estat.missatge = "";
+  renderitzar();
+  window.scrollTo(0, 0);
+}
+function confirmarResposta() {
+  var q = preguntaActual();
+  if (!q || estat.triada === null) return;
+  estat.confirmat = true;
+  aturarTemporitzador();
+  if (estat.triada === q.c) {
+    estat.guany = PREMIS[estat.nivell];
+    if (estat.nivell >= 14) {
+      renderFinal(true);
+      return;
+    }
+    if (estat.mode === "concursant") {
+      setTimeout(seguentPregunta, 2200); // avança sola, sense botons de presentador
+    }
+  } else {
+    estat.guany = premiAssegurat();
+  }
+  renderitzar();
+}
+function seguentPregunta() {
+  var q = preguntaActual();
+  if (!q || estat.triada !== q.c) { renderFinal(false); return; }
+  if (estat.nivell >= 14) { renderFinal(true); return; }
+  estat.nivell++;
+  estat.triada = null;
+  estat.confirmat = false;
+  estat.eliminades = [];
+  estat.veientCorrecta = false;
+  estat.missatge = "";
+  aturarTemporitzador();
+  renderitzar();
+}
+function retirarSe() {
+  estat.triada = null;
+  estat.guany = estat.guany;
+  estat.confirmat = true;
+  renderFinal(true);
+}
+function usarCincuanta() {
+  if (!estat.comodins.cincuenta || estat.confirmat) return;
+  var q = preguntaActual();
+  if (!q) return;
+  var incorrectes = [0,1,2,3].filter(function (i) { return i !== q.c; });
+  if (estat.triada !== null && estat.triada !== q.c) {
+    // si la triada és incorrecta, conservem-la visible: en traiem les altres dues
+    var altres = incorrectes.filter(function (i) { return i !== estat.triada; });
+    estat.eliminades = altres;
+  } else {
+    while (incorrectes.length > 2) {
+      incorrectes.splice(Math.floor(Math.random() * incorrectes.length), 1);
+    }
+    estat.eliminades = incorrectes;
+  }
+  estat.comodins.cincuenta = false;
+  renderitzar();
+}
+function usarPubli() {
+  if (!estat.comodins.publi || estat.confirmat) return;
+  estat.comodins.publi = false;
+  renderitzar();
+  obrirPublic();
+}
+function usarGoogle() {
+  if (!estat.comodins.google || estat.confirmat) return;
+  estat.comodins.google = false;
+  renderitzar();
+  iniciarTemporitzador();
+}
+function commutarVeureCorrecta() {
+  estat.veientCorrecta = !estat.veientCorrecta;
+  renderitzar();
+}
+
+/* ---------------- RENDERITZACIÓ ---------------- */
+function renderitzar() {
+  switch (estat.vista) {
+    case "inici": renderInici(); break;
+    case "joc": renderJoc(); break;
+    case "editor": renderEditor(); break;
+    case "edicio-pregunta": renderEdicioPregunta(); break;
+    case "ajuda": renderAjuda(); break;
+  }
+}
+
+function renderInici() {
+  aturarTemporitzador();
+  var manca = [];
+  for (var n = 0; n < 3; n++) if (preguntesDe(n).length < 15) manca.push(n);
+  var botoConcursants = NOMS_CONCURSANTS.map(function (nom, n) {
+    return '<button class="btn secundari" data-accio="escollir-concursant" data-n="' + n + '"' +
+      (manca.indexOf(n) >= 0 ? ' disabled title="Encara no té les 15 preguntes: afegiu-les a l\'editor"' : '') +
+      '>' + nom + (manca.indexOf(n) >= 0 ? ' (pendent)' : '') + '</button>';
+  }).join("");
+
+  app.innerHTML =
+    '<h1>¿Quién quiere ser Leonardo?<small>Curs de brecha digital · persones majors de 60 anys</small></h1>' +
+    (estat.missatge ? '<div class="aviso">' + escapar(estat.missatge) + '</div>' : '') +
+    '<div class="botons-menu">' +
+      '<button class="btn" data-accio="escollir-mode" data-mode="presentador">🎙️ Modo presentador (dinamizador)</button>' +
+      '<button class="btn" data-accio="escollir-mode" data-mode="concursant">🙋 Modo concursant (jugant a la pantalla)</button>' +
+      '<button class="btn secundari" data-accio="anar-editor">✏️ Editor de preguntes</button>' +
+      '<button class="btn secundari" data-accio="anar-ajuda">❓ Com es juga</button>' +
+    '</div>' +
+    '<div id="menuConcursant" style="display:none;">' +
+      '<p style="text-align:center;font-size:1.2rem;">Tria el concursant (màxim 3):</p>' +
+      '<div class="botons-menu" style="margin-top:6px;">' + botoConcursants + '</div>' +
+    '</div>';
+}
+
+function renderJoc() {
+  var q = preguntaActual();
+  var esPres = estat.mode === "presentador";
+  var html = '<h1>¿Quién quiere ser Leonardo?<small>' +
+    (esPres ? "Modo presentador · " : "Modo concursant · ") +
+    escapar(NOMS_CONCURSANTS[estat.concursant]) + '</small></h1>';
+
+  html += '<div class="capsalera-joc">' +
+    '<div class="comodins">' +
+      '<button class="comodi' + (estat.comodins.cincuenta ? '' : ' usat') + '" id="btn50" title="50:50 (el fa el presentador)">50:50</button>' +
+      '<button class="comodi' + (estat.comodins.publi ? '' : ' usat') + '" id="btnComodiPubli" title="Públic">👥</button>' +
+      '<button class="comodi' + (estat.comodins.google ? '' : ' usat') + '" id="btnComodiGoogle" title="30 segons amb Google">G</button>' +
+    '</div>' +
+    '<div class="guanyactual">Guany: ' + formatEuro(estat.guany) + '</div>' +
+    '<button class="btn secundari btn-petit" data-accio="tornar-inici" title="Tornar al menú inicial">⬅ Menú</button>' +
+  '</div>';
+
+  html += '<div class="columna-joc"><div class="zona-pregunta">' +
+    '<div id="temporitzador"></div>' +
+    '<div class="targeta-pregunta"><div class="num-pregunta">Pregunta ' + (estat.nivell + 1) + ' de 15 · val ' +
+      formatEuro(PREMIS[estat.nivell]) +
+      (estat.nivell === NIVELL_ASSEGURAT_1 || estat.nivell === NIVELL_ASSEGURAT_2
+        ? ' · <strong>nivell assegurat!</strong>' : '') +
+    '</div>' + escapar(q.p) + '</div>' +
+    '<div class="opcions">';
+
+  LLETRES.forEach(function (l, i) {
+    var classes = "opcio";
+    if (estat.eliminades.indexOf(i) >= 0) classes += " oculta";
+    var correcta = (i === q.c);
+    if (estat.confirmat) {
+      if (correcta) classes += " correcta";
+      else if (estat.triada === i) classes += " error";
+    } else {
+      if (estat.triada === i) classes += " triada";
+      else if (estat.veientCorrecta && correcta) classes += " correcta";
+    }
+    html += '<button class="' + classes + '" data-accio="opcio" data-i="' + i + '"' +
+      (estat.confirmat || estat.eliminades.indexOf(i) >= 0 || (estat.mode === "concursant" && estat.confirmat) ? ' disabled' : '') +
+      '><span class="lletra">' + l + '</span><span>' + escapar(q.o[i]) + '</span></button>';
+  });
+  html += '</div>';
+
+  html += '<div class="panell-controls">';
+  if (!estat.confirmat) {
+    if (esPres) {
+      html += '<button class="btn" id="btnConfirmar"' + (estat.triada === null ? ' disabled' : '') +
+        '>✅ Confirmar la resposta del concursant (' + (estat.triada !== null ? LLETRES[estat.triada] : '—') + ')</button>' +
+        '<button class="btn secundari" id="btnVeure">👁️ ' + (estat.veientCorrecta ? "Ocultar la correcta" : "Veure la correcta (només presentador)") + '</button>';
+    } else {
+      html += '<button class="btn" id="btnConfirmar"' + (estat.triada === null ? ' disabled' : '') +
+        '>✅ Confirmar la meva resposta</button>';
+    }
+    html += '<button class="btn perill" id="btnRetirar">🏳️ Aturar-se i marxar amb ' + formatEuro(estat.guany) + '</button>';
+  } else if (estat.triada === q.c) {
+    html += '<div class="aviso" style="width:100%;">🎉 Correcte! Ja tens assegurada la quantitat: <strong>' + formatEuro(estat.guany) + '</strong></div>';
+    if (esPres) html += '<button class="btn" id="btnSeguent">➡️ Següent pregunta (' + formatEuro(PREMIS[estat.nivell + 1]) + ')</button>';
+  } else {
+    html += '<div class="aviso" style="width:100%;">🛑 No era la bona: la resposta correcta era la ' + LLETRES[q.c] + '. El premi assegurat es conserva: <strong>' + formatEuro(estat.guany) + '</strong></div>';
+    html += '<button class="btn perill" id="btnSeguent">🛑 Veure el resultat final</button>';
+  }
+  html += '</div></div>';
+
+  html += '<div class="escala-zona"><table class="taula-escala">';
+  for (var n = 14; n >= 0; n--) {
+    var fila = "fila-escala";
+    if (n === estat.nivell) fila += " fila-actual";
+    else if (n < estat.nivell) fila += " fila-superada";
+    if (n === NIVELL_ASSEGURAT_1 || n === NIVELL_ASSEGURAT_2) fila += " fila-assegurat";
+    html += '<tr class="' + fila.trim() + '"><td>' + (n + 1) + '</td><td class="premi">' + formatEuro(PREMIS[n]) + '</td></tr>';
+  }
+  html += '</table></div></div>';
+
+  app.innerHTML = html;
+  pintarTemporitzador();
+  lligarJoc();
+}
+function lligarJoc() {
+ [].forEach.call(document.querySelectorAll("[data-accio='opcio']"), function (b) {
+    b.addEventListener("click", function () { clicarOpcio(parseInt(b.getAttribute("data-i"), 10)); });
+  });
+  lligar("btn50", usarCincuanta);
+  lligar("btnComodiPubli", usarPubli);
+  lligar("btnComodiGoogle", usarGoogle);
+  lligar("btnConfirmar", confirmarResposta);
+  lligar("btnVeure", commutarVeureCorrecta);
+  lligar("btnRetirar", retirarSe);
+  lligar("btnSeguent", seguentPregunta);
+}
+function lligar(id, fn) {
+  var el = document.getElementById(id);
+  if (el) el.addEventListener("click", fn);
+}
+
+function renderFinal(victoria) {
+  var titol, text;
+  var vaFallar = estat.confirmat && estat.triada !== null && estat.triada !== preguntaActual().c;
+  if (vaFallar) {
+    titol = "🛑 Resposta incorrecta";
+    text = "S'ha marxat amb el premi assegurat: <strong>" + formatEuro(estat.guany) + "</strong>";
+  } else if (victoria && estat.guany === PREMIS[14]) {
+    titol = "🎉 GRAN PREMI FINAL!";
+    text = "Ha guanyat el milió: <strong>" + formatEuro(PREMIS[14]) + "</strong>";
+  } else {
+    titol = "🏳️ S'ha aturat a temps";
+    text = "Es marxa amb: <strong>" + formatEuro(estat.guany) + "</strong>";
+  }
+  app.innerHTML =
+    '<h1>¿Quién quiere ser Leonardo?<small>' + escapar(NOMS_CONCURSANTS[estat.concursant]) + '</small></h1>' +
+    '<div class="resultat-final"><h2>' + titol + '</h2><p>' + text + '</p></div>' +
+    '<div class="botons-menu">' +
+      '<button class="btn" data-accio="tornar-inici">↻ Tornar al menú per al següent concursant</button>' +
+      '<button class="btn secundari" data-accio="repetir-concursant">A jugar una altra vegada</button>' +
+    '</div>';
+}
+
+function renderAjuda() {
+  app.innerHTML =
+    '<h1>Com es juga</h1><div class="ajuda"><ul>' +
+    '<li><strong>15 preguntes</strong> d\'escalada de dificultat. A les preguntes <strong>5 (1.000 €)</strong> i <strong>10 (15.000 €)</strong> el premi queda assegurat: si falles després, surts amb aquesta quantitat.</li>' +
+    '<li><strong>Modo presentador:</strong> escolta la resposta que diu en veu alta el concursant, fes un clic sobre la opció per marcar-la i prem «Confirmar». Amb el botó 👁️ pots veure (o amagar) la correcta, i tu fas el comodí 50:50.</li>' +
+    '<li><strong>Modo concursant:</strong> l\'alumne juga a la pantalla i no veu mai la solució fins que no confirma.</li>' +
+    '<li><strong>Comodí 50:50:</strong> desapareixen dues respostes incorrectes (si ja n\'hi ha una marcada, se\'n manté i s\'esborren les altres dues dolentes).</li>' +
+    '<li><strong>Comodí del públic 👥:</strong> la classe vota a mà alçada; s\'apunten els vots i la app dibuixa el gràfic de percentatges.</li>' +
+    '<li><strong>Comodí de Google ⏱️:</strong> compte enrere de 30 segons per cercar a Internet.</li>' +
+    '<li><strong>Aturar-se 🏳️:</strong> en qualsevol moment abans de confirmar es pot marxar amb el premi acumulat.</li>' +
+    '<li><strong>Editor de preguntes:</strong> a dins pots afegir, editar, esborrar i importar/exportar les preguntes dels 3 concursants.</li>' +
+    '</ul><div class="tornar"><button class="btn" data-accio="tornar-inici">⬅ Tornar al menú</button></div></div>';
+}
+
+/* ---------------- EDITOR ---------------- */
+function renderEditor() {
+  var n = editorEstat.concursant;
+  var llista = preguntesDe(n);
+  var pestanyes = NOMS_CONCURSANTS.map(function (nom, i) {
+    return '<button class="btn secundari btn-petit" data-accio="editor-concursant" data-n="' + i + '"' +
+      (i === n ? ' style="border-color:var(--or)"' : '') + '>' + nom + ': ' + preguntesDe(i).length + '/15</button>';
+  }).join("");
+  var html = '<h1>Editor de preguntes<small>' + escapar(NOMS_CONCURSANTS[n]) + '</small></h1>' +
+    '<div class="editor-zona"><div class="fila">' + pestanyes + '</div>';
+  if (!preguntesPerConcursant["c" + (n + 1)]) {
+    html += '<div class="aviso">Aquest concursant té de sèrie les 15 preguntes del guion. Si n\'editeu alguna, es desaran al navegador i prevaldran sobre les originals.</div>';
+  }
+  llista.forEach(function (q, i) {
+    html += '<div class="item-pregunta"><span><strong>' + (i + 1) + '.</strong> ' + escapar(q.p) +
+      ' <em>(✓ ' + LLETRES[q.c] + ')</em></span>' +
+      '<button class="btn secundari btn-petit" data-accio="editar-p" data-n="' + i + '">Editar</button>' +
+      '<button class="btn perill btn-petit" data-accio="esborrar-p" data-n="' + i + '">✕</button></div>';
+  });
+  if (llista.length < 15) {
+    html += '<div class="fila" style="margin:12px 0;"><button class="btn" data-accio="afegir-p">＋ Afegir pregunta ' + (llista.length + 1) + '</button></div>';
+  }
+  html += '<div class="fila" style="margin-top:16px;">' +
+    '<button class="btn secundari btn-petit" data-accio="exportar">⬆️ Exportar totes les preguntes (JSON)</button>' +
+    '<button class="btn secundari btn-petit" data-accio="importar">⬇️ Importar preguntes (JSON)</button>' +
+    '</div><div id="zonaImport"></div>' +
+    '<div class="tornar"><button class="btn" data-accio="tornar-inici">⬅ Tornar al menú</button></div></div>';
+  app.innerHTML = html;
+}
+
+function renderEdicioPregunta() {
+  var n = editorEstat.concursant;
+  var llista = preguntesDe(n);
+  var esNova = editorEstat.index === null;
+  var q = esNova ? { p:"", o:["","","",""], c:0 } : llista[editorEstat.index];
+  var html = '<h1>' + (esNova ? 'Nova pregunta ' + (llista.length + 1) : 'Editar pregunta ' + (editorEstat.index + 1)) +
+    '<small>' + escapar(NOMS_CONCURSANTS[n]) + '</small></h1><div class="editor-zona">' +
+    '<label>Enunciat:</label><input class="camp" id="campPregunta" value="' + escapar(q.p) + '">';
+  LLETRES.forEach(function (l, i) {
+    html += '<label><input type="radio" class="radio-correcta" name="radiocorrecta" value="' + i + '"' +
+      (q.c === i ? ' checked' : '') + '> Resposta ' + l + ' — marca aquí si és la correcta:</label>' +
+      '<input class="camp" data-opt="' + i + '" value="' + escapar(q.o[i] || "") + '">';
+  });
+  html += '<div class="fila" style="margin-top:16px;">' +
+    '<button class="btn" id="btnGuardarP">💾 Desar</button>' +
+    '<button class="btn secundari" id="btnCancelarP">Cancel·lar</button></div></div>';
+  app.innerHTML = html;
+
+  document.getElementById("btnGuardarP").addEventListener("click", function () {
+    var p = document.getElementById("campPregunta").value.trim();
+    var opts = [];
+    var c = 0;
+    var optsEls = document.querySelectorAll("[data-opt]");
+    var radios = document.querySelectorAll("input[name='radiocorrecta']");
+    optsEls.forEach(function (inp, i) {
+      opts.push(inp.value.trim());
+      if (radios[i].checked) c = i;
+    });
+    if (!p || opts.some(function (o) { return !o; })) {
+      alert("Cal omplir l'enunciat i les quatre respostes.");
+      return;
+    }
+    if (esNova) llista.push({ p:p, o:opts, c:c });
+    else llista[editorEstat.index] = { p:p, o:opts, c:c };
+    if (n === 0) preguntesPerConcursant.c1 = llista;
+    else if (n === 1) preguntesPerConcursant.c2 = llista;
+    else preguntesPerConcursant.c3 = llista;
+    guardarPreguntes();
+    estat.vista = "editor";
+    renderitzar();
+  });
+  document.getElementById("btnCancelarP").addEventListener("click", function () {
+    estat.vista = "editor";
+    renderitzar();
+  });
+}
+
+function exportarPreguntes() {
+  var dades = { c1: preguntesDe(0), c2: preguntesDe(1), c3: preguntesDe(2) };
+  document.getElementById("zonaImport").innerHTML =
+    '<label>Copia aquest text i guarda\'l en un fitxer (per reutilitzar-lo a un altre ordinador):</label>' +
+    '<textarea class="camp" rows="8" readonly onclick="this.select()">' + escapar(JSON.stringify(dades)) + '</textarea>';
+}
+function importarPreguntes() {
+  var zona = document.getElementById("zonaImport");
+  if (zona.getAttribute("data-obert") === "1") return;
+  zona.setAttribute("data-obert", "1");
+  zona.innerHTML = '<label style="margin-top:12px;">Pega aquí el text JSON exportat abans:</label>' +
+    '<textarea class="camp" id="textImport" rows="8"></textarea>' +
+    '<div class="fila"><button class="btn" id="btnFerImport">Importar</button></div>';
+  document.getElementById("btnFerImport").addEventListener("click", function () {
+    var dades;
+    try { dades = JSON.parse(document.getElementById("textImport").value); }
+    catch (e) { alert("El text no és un JSON vàlid."); return; }
+    var esLlistaValida = function (a) {
+      return Array.isArray(a) && a.every(function (q) {
+        return q && typeof q.p === "string" && Array.isArray(q.o) && q.o.length === 4
+          && typeof q.c === "number" && q.c >= 0 && q.c <= 3;
+      });
+    };
+    if (esLlistaValida(dades.c1)) { preguntesPerConcursant.c1 = dades.c1; }
+    if (esLlistaValida(dades.c2)) { preguntesPerConcursant.c2 = dades.c2; }
+    if (esLlistaValida(dades.c3)) { preguntesPerConcursant.c3 = dades.c3; }
+    guardarPreguntes();
+    estat.missatge = "Preguntes importades correctament!";
+    estat.vista = "inici";
+    renderitzar();
+  });
+}
+
+/* ---------------- ESDEVENIMENTS ---------------- */
+app.addEventListener("click", function (e) {
+  var btn = e.target.closest("[data-accio]");
+  if (!btn) return;
+  var accio = btn.getAttribute("data-accio");
+  if (accio === "escollir-mode") {
+    estat.mode = btn.getAttribute("data-mode");
+    estat.missatge = "";
+    var menu = document.getElementById("menuConcursant");
+    if (menu) menu.style.display = "block";
+  } else if (accio === "escollir-concursant") {
+    estat.concursant = parseInt(btn.getAttribute("data-n"), 10);
+    if (estat.mode === null) estat.mode = "presentador";
+    iniciarJoc();
+  } else if (accio === "anar-editor") {
+    estat.vista = "editor"; estat.missatge = ""; renderitzar();
+  } else if (accio === "anar-ajuda") {
+    estat.vista = "ajuda"; estat.missatge = ""; renderitzar();
+  } else if (accio === "tornar-inici") {
+    estat.vista = "inici"; estat.missatge = ""; renderitzar();
+  } else if (accio === "repetir-concursant") {
+    iniciarJoc();
+  } else if (accio === "editor-concursant") {
+    editorEstat.concursant = parseInt(btn.getAttribute("data-n"), 10);
+    renderitzar();
+  } else if (accio === "editar-p") {
+    editorEstat.index = parseInt(btn.getAttribute("data-n"), 10);
+    estat.vista = "edicio-pregunta"; renderitzar();
+  } else if (accio === "afegir-p") {
+    editorEstat.index = null;
+    estat.vista = "edicio-pregunta"; renderitzar();
+  } else if (accio === "esborrar-p") {
+    var i = parseInt(btn.getAttribute("data-n"), 10);
+    if (confirm("Segur que voleu esborrar la pregunta " + (i + 1) + "?")) {
+      var llista = preguntesDe(editorEstat.concursant);
+      llista.splice(i, 1);
+      if (editorEstat.concursant === 0) preguntesPerConcursant.c1 = llista;
+      else if (editorEstat.concursant === 1) preguntesPerConcursant.c2 = llista;
+      else preguntesPerConcursant.c3 = llista;
+      guardarPreguntes();
+      renderitzar();
+    }
+  } else if (accio === "exportar") {
+    exportarPreguntes();
+  } else if (accio === "importar") {
+    importarPreguntes();
+  }
+});
+
+document.getElementById("btnPubliFer").addEventListener("click", ferGraficPublic);
+document.getElementById("btnPubliTancar").addEventListener("click", function () {
+  document.getElementById("modalPubli").classList.remove("visible");
+});
+
+renderitzar();
+</script>
+</body>
+</html>
+
