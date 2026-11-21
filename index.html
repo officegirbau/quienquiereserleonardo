@@ -84,13 +84,23 @@
     font-size:2.6rem;font-weight:bold;color:var(--vermell);text-align:center;
     display:none;margin:10px 0;text-shadow:0 2px 8px #000;
   }
-  .modal-fons{
-    display:none;position:fixed;inset:0;background:rgba(0,0,10,.75);
-    align-items:center;justify-content:center;z-index:50;padding:16px;
+  .panell-flotant{
+    position:fixed;right:18px;top:88px;width:310px;max-width:calc(100vw - 24px);z-index:60;
+    background:var(--blau-mig);border:3px solid var(--or);border-radius:16px;
+    box-shadow:0 12px 32px rgba(0,0,10,.65);max-height:calc(100vh - 110px);overflow:auto;
   }
-  .modal-fons.visible{display:flex;}
-  .modal{background:var(--blau-mig);border:3px solid var(--or);border-radius:16px;padding:22px;max-width:560px;width:100%;}
-  .modal h3{margin-top:0;color:var(--or);text-align:center;}
+  .panell-flotant.ocult{display:none;}
+  .panell-cap{
+    cursor:move;user-select:none;touch-action:none;
+    background:rgba(0,0,30,.6);color:var(--or);font-weight:bold;
+    padding:10px 12px;border-radius:12px 12px 0 0;font-size:1rem;
+  }
+  .panell-cos{padding:12px 14px 16px;}
+  .panell-cos p{margin:0 0 10px;font-size:.95rem;color:#cfd6ff;}
+  .fila-entrada{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .fila-entrada input{flex:1;font:inherit;padding:8px 10px;min-width:0;
+    border-radius:8px;border:2px solid #5a6bc4;background:#0b1238;color:#fff;}
+  .fila-entrada input:focus{outline:none;border-color:var(--or);}
   .grafic-publi{display:flex;flex-direction:column;gap:8px;margin:14px 0;}
   .barra-fila{display:flex;align-items:center;gap:10px;font-weight:bold;}
   .barra-fila .lletra{width:28px;height:28px;font-size:.9rem;}
@@ -125,11 +135,11 @@
 <body>
 <div id="app"></div>
 
-<div class="modal-fons" id="modalPubli">
-  <div class="modal">
-    <h3>Comodí del públic — votació a mà alçada</h3>
-    <p>Anoteu quants vots aixeca la classe per a cada resposta i feu el gràfic:</p>
-    <div id="inputsPubli" class="fila" style="justify-content:flex-start;"></div>
+<div class="panell-flotant ocult" id="panellPubli">
+  <div class="panell-cap" id="panellPubliCap">👥 Comodí del públic — votació a mà alçada (arrossegueu-me)</div>
+  <div class="panell-cos">
+    <p>Anoteu quants vots aixeca la classe per a cada resposta:</p>
+    <div id="inputsPubli"></div>
     <div class="grafic-publi" id="graficPubli"></div>
     <div class="fila">
       <button class="btn" id="btnPubliFer">Fer el gràfic</button>
@@ -346,17 +356,24 @@ function obrirPublic() {
   var contenidor = document.getElementById("inputsPubli");
   contenidor.innerHTML = "";
   LLETRES.forEach(function (l, i) {
+    var fila = document.createElement("div");
+    fila.className = "fila-entrada";
+    fila.innerHTML = '<span class="lletra">' + l + '</span>';
     var entrada = document.createElement("input");
     entrada.type = "number"; entrada.min = "0"; entrada.value = "0";
-    entrada.className = "camp"; entrada.style.width = "90px"; entrada.style.margin = "0";
-    entrada.setAttribute("aria-label", "Vots opció " + l);
+    entrada.setAttribute("aria-label", "Vots de la resposta " + l);
     entrada.addEventListener("input", function () {
       votesTemp[i] = Math.max(0, parseInt(entrada.value, 10) || 0);
     });
-    contenidor.appendChild(entrada);
+    fila.appendChild(entrada);
+    contenidor.appendChild(fila);
   });
   document.getElementById("graficPubli").innerHTML = "";
-  document.getElementById("modalPubli").classList.add("visible");
+  var panell = document.getElementById("panellPubli");
+  panell.classList.remove("ocult");
+  panell.style.right = "18px";
+  panell.style.top = "88px";
+  panell.style.left = "auto";
 }
 function ferGraficPublic() {
   var total = votesTemp.reduce(function (a, b) { return a + b; }, 0);
@@ -836,9 +853,39 @@ app.addEventListener("click", function (e) {
   }
 });
 
+(function () {
+  var panell = document.getElementById("panellPubli");
+  var nansa = document.getElementById("panellPubliCap");
+  var arrossegant = false, offX = 0, offY = 0;
+  function inici(e) {
+    if (panell.classList.contains("ocult")) return;
+    var punts = e.touches ? e.touches[0] : e;
+    var rect = panell.getBoundingClientRect();
+    offX = punts.clientX - rect.left;
+    offY = punts.clientY - rect.top;
+    arrossegant = true;
+    if (e.cancelable) e.preventDefault();
+  }
+  function moure(e) {
+    if (!arrossegant) return;
+    var punts = e.touches ? e.touches[0] : e;
+    panell.style.left = (punts.clientX - offX) + "px";
+    panell.style.top = (punts.clientY - offY) + "px";
+    panell.style.right = "auto";
+    if (e.cancelable) e.preventDefault();
+  }
+  function fi() { arrossegant = false; }
+  nansa.addEventListener("mousedown", inici);
+  nansa.addEventListener("touchstart", inici, {passive:true});
+  document.addEventListener("mousemove", moure);
+  document.addEventListener("touchmove", moure, {passive:false});
+  document.addEventListener("mouseup", fi);
+  document.addEventListener("touchend", fi);
+})();
+
 document.getElementById("btnPubliFer").addEventListener("click", ferGraficPublic);
 document.getElementById("btnPubliTancar").addEventListener("click", function () {
-  document.getElementById("modalPubli").classList.remove("visible");
+  document.getElementById("panellPubli").classList.add("ocult");
 });
 
 renderitzar();
