@@ -1,27 +1,27 @@
 # ¿Quién quiere ser Leonardo?
 
-Juego tipo «¿Quién quiere ser millonario?» para el curso de brecha digital de personas mayores de 60 años.
+Juego tipo «¿Quién quiere ser millonario?» para el **curs de tràmits per internet**.
 
 **Es un único archivo `index.html`**: se abre con doble clic en cualquier navegador (Chrome, Edge, Firefox…), sin instalar nada y sin Internet.
 
 ## Cómo empezar
 
 1. Doble clic en `index.html`.
-2. Elige **Modo presentador** o **Modo concursant**.
+2. Pulsa **▶ JUGAR A QUI VOL SER LEONARDO**: desaparecen las opciones iniciales y aparece **«Tria el concursant»**.
 3. Elige concursante: hasta **3**, cada uno con sus 15 preguntas propias cargadas (45 en total, según el guion del curso).
 
-## Modos
+## Cómo se juega
 
-- **Modo presentador (dinamizador):** el concursante responde en voz alta sin tocar la app. El presentador marca la opción con un clic y pulsa «Confirmar». Puede ver/amagar la respuesta correcta con el botón 👁️ y controla el comodín 50:50.
-- **Modo concursant:** el alumno juega en pantalla y no ve nunca la solución hasta que confirma su respuesta.
+El concursante juega directamente en la pantalla: elige la respuesta con un clic y pulsa «✅ Confirmar la meva resposta». La solución solo se ve al confirmar; si acierta, la app avanza sola a la siguiente pregunta.
 
 ## Reglas (según el guion del curso)
 
 - 15 preguntas de dificultad creciente en 3 bloques.
-- **Pregunta 5 (1.000 punts)** y **pregunta 10 (15.000 punts)**: niveles asegurados. Si fallas después, sales con esa cantidad.
+- **Pregunta 5 (1.000 punts)** y **pregunta 10 (15.000 punts)**: niveles asegurados (🔒). Si fallas después, sales con esa cantidad. La **escalera de premis** indica en todo momento el nivel actual y las zonas seguras.
 - Pregunta 15: **1.000.000 punts**.
 - 3 comodines: **50:50** (elimina 2 respuestas incorrectas), **público** (votación a mano alzada: casillas con las letras A-D, y el panel es **arrastrable** para dejarlo donde no tape las respuestas; la app dibuja el gráfico de porcentajes) y **Google** (cronómetro de 30 segundos para buscar en Internet).
 - Se puede **retirarse** en cualquier momento con el acumulado.
+- Todo se puntúa en **punts** (no en euros).
 
 ## Editor de preguntas
 
