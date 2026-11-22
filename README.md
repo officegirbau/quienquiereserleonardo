@@ -18,8 +18,8 @@ Juego tipo «¿Quién quiere ser millonario?» para el curso de brecha digital d
 ## Reglas (según el guion del curso)
 
 - 15 preguntas de dificultad creciente en 3 bloques.
-- **Pregunta 5 (1.000 €)** y **pregunta 10 (15.000 €)**: niveles asegurados. Si fallas después, sales con esa cantidad.
-- Pregunta 15: **1.000.000 €**.
+- **Pregunta 5 (1.000 punts)** y **pregunta 10 (15.000 punts)**: niveles asegurados. Si fallas después, sales con esa cantidad.
+- Pregunta 15: **1.000.000 punts**.
 - 3 comodines: **50:50** (elimina 2 respuestas incorrectas), **público** (votación a mano alzada: casillas con las letras A-D, y el panel es **arrastrable** para dejarlo donde no tape las respuestas; la app dibuja el gráfico de porcentajes) y **Google** (cronómetro de 30 segundos para buscar en Internet).
 - Se puede **retirarse** en cualquier momento con el acumulado.
 
